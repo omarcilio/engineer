@@ -1,0 +1,6 @@
+Repositorio contendo os artefatos:
+1. Diagrama Entidade Relacional.png - Modelo DER
+2. create_tables.sql - Script de criação de tabelas
+3. script_carga_tabelas.sql - Script de carga de dados nas tabelas criadas
+4. challenge_ml_script_carga_dados.py - Script pyspark para geração de dados
+5. respuestas_negocio.sql - Script contendo queries com resoluções de negocio
