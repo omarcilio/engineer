@@ -1,0 +1,5 @@
+Repositorio contendo os artefatos:
+1. challenge_ml_consumo_api_produtos.py - Script em python responsavel pelo consumo das APIs e gravação do resultado final em arquivo .csv
+2. produtos_api_final.png - Print com resultado final dos dados gravados
+3. colunas_api_produtos.png - Print contendo os campos da API obtido através de documentação
+4. produtos_api.csv - Arquivo .csv contendo o resultado final da carga
