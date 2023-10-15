@@ -9,12 +9,15 @@ SELECT
     c.nombre,
     c.apellido,
     c.fechaNacimiento,
-    COUNT(orderId) as Cantidad
-FROM dbo.Customer c
-JOIN dbo.Order o
-	ON c.customerId = o.customerId
+    COUNT(o.orderId) as Cantidad
+FROM mlDatabase.Customer c
+JOIN mlDatabase.Order o 
+	ON c.customerId = o.sellerId -- Join utilizando "sellerId" para listar apenas vendedores
+JOIN mlDatabase.OrderStatus os
+	ON o.orderId = os.orderId
 WHERE c.fechaNacimiento = CAST(CURRENT_TIMESTAMP() AS DATE) -- Usuarios que cumplan años el día de hoy
 AND o.fechaOrder BETWEEN '2020-01-01' AND '2020-01-31' -- Ventas realizadas en enero 2020
+AND os.statusDescripcion <> 'Cancelado' -- Filtrando apenas vendas efetivas
 GROUP BY 
 	c.customerId,
     c.email,
@@ -49,17 +52,20 @@ SELECT
     SUM(oi.Cantidad) suma_itens, -- cantidad de productos vendidos
     SUM(oi.precoUnitario) monto_total, -- monto total transaccionado
     ROW_NUMBER() OVER (PARTITION BY DATE_FORMAT(o.fechaOrder, '%Y-%m') ORDER BY SUM(oi.precoUnitario) DESC) as ranking -- clasificar a los mejores vendedores($) por mes
-FROM dbo.Customer c
-JOIN dbo.Order o
-	ON c.customerId = o.customerId
-JOIN dbo.OrderItem oi
+FROM mlDatabase.Customer c
+JOIN mlDatabase.Order o
+	ON c.customerId = o.sellerId -- Join utilizando "sellerId" para listar apenas vendedores
+JOIN mlDatabase.OrderStatus os 
+	ON o.orderId = os.orderId 
+JOIN mlDatabase.OrderItem oi
 	ON o.orderId = oi.orderId
-JOIN dbo.Item i
+JOIN mlDatabase.Item i
 	ON oi.itemId = i.itemId
-JOIN dbo.category ct
+JOIN mlDatabase.category ct
 	ON i.categoryId = ct.categoryId
 WHERE o.fechaOrder BETWEEN '2020-01-01' AND '2020-12-31' -- Ventas realizadas en 2020
 AND ct.categoryDescripcion = 'Celulares'
+AND os.statusDescripcion <> 'Cancelado' -- Apenas vendas efetivas
 GROUP BY DATE_FORMAT(o.fechaOrder, '%Y-%m'),
     c.customerId,
     c.nombre,
@@ -100,13 +106,13 @@ DROP PROCEDURE IF EXISTS sp_merge_itemHistorico;
 CREATE PROCEDURE sp_merge_itemHistorico()
 BEGIN
     
-    INSERT INTO dbo.itemHistorico (itemId, precio, estado, fechaActualizacion)
+    INSERT INTO mlDatabase.itemHistorico (itemId, precio, estado, fechaActualizacion)
     SELECT
 		i.itemId, 
         i.precio, 
         i.estado, 
         CURRENT_TIMESTAMP() AS fechaActualizacion
-	FROM dbo.Item i
+	FROM mlDatabase.Item i
     ON DUPLICATE KEY UPDATE
         precio = i.precio,
         estado = i.estado;
@@ -121,7 +127,7 @@ DELIMITER ;
 
 CALL sp_merge_itemHistorico; -- Executando procedure
 
-SELECT * FROM dbo.itemHistorico; -- Validando resultado
+SELECT * FROM mlDatabase.itemHistorico; -- Validando resultado
 
 -- Alterando estado e precio
 UPDATE dbo.Item
