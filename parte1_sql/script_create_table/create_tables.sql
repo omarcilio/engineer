@@ -1,15 +1,14 @@
 -- ----------------------------------------------------
 -- 			CREATE DATABASE SCHEMA					 --
 -- ----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `dbo`;
-USE `dbo`;
-
+CREATE SCHEMA IF NOT EXISTS `mlDatabase`;
+USE `mlDatabase`;
 
 -- -----------------------------------------------------
--- Table `dbo`.`Customer` 					  --
+-- Table `mlDatabase`.`Customer` 					  --
 -- Tabela contendo clientes e dados de contato	 	  --									
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`Customer` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`Customer` (
 	`customerId` INT NOT NULL AUTO_INCREMENT,
 	`email` VARCHAR(255) NULL,
 	`nombre` VARCHAR(45) NULL,
@@ -18,15 +17,16 @@ CREATE TABLE IF NOT EXISTS `dbo`.`Customer` (
 	`direccion` VARCHAR(45) NULL,
 	`fechaNacimiento` DATE NULL,
 	`telefono` INT NULL,
+    `isBuyer` INT NULL,
+    `isSeller` INT NULL,
 	PRIMARY KEY (`customerId`)
 );
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`Category`
--- Tabela contendo categoria de produtos
+-- Table `mlDatabase`.`Category`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`Category` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`Category` (
   `categoryId` INT NOT NULL AUTO_INCREMENT,
   `categoryDescripcion` VARCHAR(255) NULL,
   `path` VARCHAR(255) NULL,
@@ -36,10 +36,10 @@ CREATE TABLE IF NOT EXISTS `dbo`.`Category` (
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`Item`
--- Tabela contendo todos os produtos já cadastrados		--
+-- Table `mlDatabase`.`Item`
+-- Tabela contendo produtos cadastrados			 	  --
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`Item` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`Item` (
   `itemId` INT NOT NULL AUTO_INCREMENT,
   `categoryId` INT NOT NULL,
   `nombre` VARCHAR(100) NULL,
@@ -52,31 +52,35 @@ CREATE TABLE IF NOT EXISTS `dbo`.`Item` (
   UNIQUE INDEX `idItem_UNIQUE` (`itemId` ASC) VISIBLE,
   CONSTRAINT `idCategoria`
     FOREIGN KEY (`categoryId`)
-    REFERENCES `dbo`.`Category` (`categoryId`)
+    REFERENCES `mlDatabase`.`Category` (`categoryId`)
 );
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`Order`
--- Tabela contendo os pedidos realizados      			  --
+-- Table `mlDatabase`.`Order`
+-- Tabela contendo os pedidos realizados 			  --
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`Order` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`Order` (
   `orderId` INT NOT NULL AUTO_INCREMENT,
   `customerId` INT NOT NULL,
+  `sellerId` INT NOT NULL,
   `fechaOrder` DATETIME NULL,
   PRIMARY KEY (`orderId`),
   INDEX `idCustomer_idx` (`customerId` ASC) VISIBLE,
   CONSTRAINT `idCustomer`
     FOREIGN KEY (`customerId`)
-    REFERENCES `dbo`.`Customer` (`customerId`)
+    REFERENCES `mlDatabase`.`Customer` (`customerId`),
+  CONSTRAINT `idSeller`
+  FOREIGN KEY (`sellerId`)
+  REFERENCES `mlDatabase`.`Customer` (`customerId`)
 );
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`OrderItem`
--- Tabela contendo o relacionamento itens e pedidos   --
+-- Table `mlDatabase`.`OrderItem`
+-- Tabela contendo os itens dos pedidos 			  --
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`OrderItem` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`OrderItem` (
   `orderItemId` INT NOT NULL AUTO_INCREMENT,
   `orderId` INT NOT NULL,
   `itemId` INT NOT NULL,
@@ -87,20 +91,20 @@ CREATE TABLE IF NOT EXISTS `dbo`.`OrderItem` (
   INDEX `idItem_idx` (`itemId` ASC) VISIBLE,
   CONSTRAINT `idOrder`
     FOREIGN KEY (`orderId`)
-    REFERENCES `dbo`.`Order` (`orderId`)
+    REFERENCES `mlDatabase`.`Order` (`orderId`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `idItem`
     FOREIGN KEY (`itemId`)
-    REFERENCES `dbo`.`Item` (`itemId`)
+    REFERENCES `mlDatabase`.`Item` (`itemId`)
 );
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`orderStatus`
--- Tabela contendo o status dos pedidos 			        --
+-- Table `mlDatabase`.`orderStatus`
+-- Tabela contendo o status dos pedidos 			  --
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`orderStatus` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`orderStatus` (
   `orderStatusId` INT NOT NULL AUTO_INCREMENT,
   `orderId` INT NOT NULL,
   `statusDescripcion` VARCHAR(45) NULL,
@@ -111,15 +115,15 @@ CREATE TABLE IF NOT EXISTS `dbo`.`orderStatus` (
   INDEX `idOrder_idx` (`orderId` ASC) VISIBLE,
   CONSTRAINT `orderId`
     FOREIGN KEY (`orderId`)
-    REFERENCES `dbo`.`Order` (`orderId`)
+    REFERENCES `mlDatabase`.`Order` (`orderId`)
 );
 
 
 -- -----------------------------------------------------
--- Table `dbo`.`itemHistorico`
--- Tabela gerada pela sp_up_item_historico			      --
+-- Table `mlDatabase`.`itemHistorico`
+-- Tabela gerada pela sp_up_item_historico			  --
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `dbo`.`itemHistorico` (
+CREATE TABLE IF NOT EXISTS `mlDatabase`.`itemHistorico` (
   `itemHistoricoId` INT NOT NULL AUTO_INCREMENT,
   `itemId` INT NOT NULL,
   `precio` DECIMAL(18,2) NULL,
@@ -129,8 +133,6 @@ CREATE TABLE IF NOT EXISTS `dbo`.`itemHistorico` (
   INDEX `idItem_idx` (`itemId` ASC) VISIBLE,
   CONSTRAINT `itemId`
     FOREIGN KEY (`itemId`)
-    REFERENCES `dbo`.`Item` (`itemId`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+    REFERENCES `mlDatabase`.`Item` (`itemId`)
 );
 
